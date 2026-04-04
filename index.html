@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>RT/RW Net - Peta Pelanggan v2</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<link rel="stylesheet" href="css/style.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="top-bar">
+  <div class="logo">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    <span class="full">NET/MAP</span>
+  </div>
+  <div class="stats-row">
+    <div class="stat-chip customers">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      <span id="customerCount">0</span>
+      <span class="label">pelanggan</span>
+    </div>
+    <div class="stat-chip status-aktif">
+      <span id="aktifCount">0</span>
+      <span class="label">Aktif</span>
+    </div>
+    <div class="stat-chip status-tidakaktif">
+      <span id="tidakAktifCount">0</span>
+      <span class="label">Tidak Aktif</span>
+    </div>
+    <div class="stat-chip status-calon">
+      <span id="calonCount">0</span>
+      <span class="label">Calon</span>
+    </div>
+    <div class="stat-chip hubs">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="2" width="20" height="8" rx="2"/><circle cx="7" cy="6" r="1"/></svg>
+      <span id="hubCount">0</span>
+      <span class="label">hub</span>
+    </div>
+    <div class="stat-chip distance">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/></svg>
+      <span id="totalCable">-</span>
+      <span class="label">kabel</span>
+    </div>
+  </div>
+</div>
+
+<!-- GPS Status -->
+<div class="gps-status searching" id="gpsStatus">
+  <div class="gps-dot"></div>
+  <span id="gpsText">Mencari GPS...</span>
+</div>
+
+<!-- Search Bar -->
+<div class="search-bar" id="searchBar">
+  <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+  <input type="text" id="searchInput" placeholder="Cari alamat atau koordinat (-1.23, 116.89)" autocomplete="off">
+  <button class="search-clear" id="searchClear" onclick="clearSearch()">&times;</button>
+  <div class="search-results" id="searchResults"></div>
+</div>
+
+<!-- Mode indicator -->
+<div class="mode-indicator" id="modeIndicator"></div>
+
+<!-- Hub info overlay -->
+<div class="hub-info-overlay" id="hubInfoOverlay">
+  <span class="hi-name" id="hubInfoName">-</span>
+  <span class="hi-stat">Port: <b id="hubInfoPort">-</b></span>
+  <span class="hi-stat">Kabel: <b id="hubInfoCable">-</b></span>
+  <span class="hi-stat">Biaya: <b id="hubInfoCost">-</b></span>
+  <button class="hi-close" onclick="clearHubHighlight()" title="Tutup">&times;</button>
+</div>
+
+<!-- Map -->
+<div id="map"></div>
+
+<!-- Dropdown Backdrop -->
+<div class="add-dropdown-backdrop" id="addDropdownBackdrop" onclick="closeAddDropdown()"></div>
+
+<!-- Add Dropdown (outside action-bar to avoid fixed-positioning containment from backdrop-filter) -->
+<div class="add-dropdown" id="addDropdown">
+  <button class="add-dropdown-item" onclick="startAddMode('base')">
+    <span class="dot" style="background:var(--base-color)"></span> Base Station
+  </button>
+  <button class="add-dropdown-item" onclick="startAddMode('hub')">
+    <span class="dot" style="background:var(--hub-color)"></span> Hub / Node
+  </button>
+  <button class="add-dropdown-item" onclick="startAddMode('customer')">
+    <span class="dot" style="background:var(--accent)"></span> Pelanggan
+  </button>
+</div>
+
+<!-- Action Bar -->
+<div class="action-bar">
+  <div style="position:relative;">
+    <button class="action-btn primary" id="addBtn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+      <span class="label">Tambah</span>
+    </button>
+  </div>
+  <button class="action-btn secondary" id="measureBtn" onclick="toggleMeasureMode()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 12h5"/><path d="M17 12h5"/><path d="M12 2v5"/><path d="M12 17v5"/></svg>
+    <span class="label">Ukur</span>
+  </button>
+  <button class="action-btn secondary" id="labelsBtn" onclick="toggleLabels()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
+    <span class="label">Label</span>
+  </button>
+  <button class="action-btn secondary" onclick="togglePanel()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg>
+    <span class="label">Daftar</span>
+  </button>
+  <button class="action-btn secondary" onclick="centerOnMe()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/><path d="M12 1v2"/><path d="M12 21v2"/><path d="M1 12h2"/><path d="M21 12h2"/></svg>
+  </button>
+</div>
+
+<!-- Side Panel -->
+<div class="side-panel" id="sidePanel">
+  <div class="panel-header">
+    <div class="panel-tabs">
+      <button class="panel-tab active" id="tabAll" onclick="switchTab('all')">Semua</button>
+      <button class="panel-tab" id="tabMeasure" onclick="switchTab('measure')">Ukur</button>
+      <button class="panel-tab" id="tabSettings" onclick="switchTab('settings')">⚙</button>
+    </div>
+    <button class="close-btn" onclick="togglePanel()">&times;</button>
+  </div>
+  <div class="panel-actions" id="panelActionsMain">
+    <button class="panel-action-btn" onclick="exportJSON()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      JSON
+    </button>
+    <button class="panel-action-btn" onclick="exportCSV()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      CSV
+    </button>
+    <button class="panel-action-btn" onclick="document.getElementById('importFile').click()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Import
+    </button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+  </div>
+  <div class="panel-search-box" id="panelSearchBox" style="padding: 8px 16px; border-bottom: 1px solid var(--border);">
+    <div style="position: relative;">
+      <svg style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-dim); pointer-events: none;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="panelSearchInput" placeholder="Cari nama atau nomor HP..." style="width: 100%; padding: 8px 32px 8px 32px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-dark); color: var(--text); font-family: var(--font-body); font-size: 13px; outline: none;">
+      <button id="panelSearchClear" onclick="clearPanelSearch()" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; border: none; border-radius: 4px; background: transparent; color: var(--text-muted); font-size: 16px; cursor: pointer; display: none; align-items: center; justify-content: center; padding: 0;">&times;</button>
+    </div>
+  </div>
+  <div class="customer-list" id="allList"></div>
+  <div class="customer-list" id="measureList" style="display:none;"></div>
+  <div class="customer-list" id="settingsList" style="display:none;"></div>
+</div>
+
+<!-- Node Modal -->
+<div class="modal-overlay" id="nodeModal">
+  <div class="modal">
+    <h3 id="nodeModalTitle">Tambah Baru</h3>
+    <div class="coord-display" id="nodeCoordDisplay">-</div>
+    <div id="nodeFieldsBase" style="display:none;">
+      <label>Nama Base Station *</label>
+      <input type="text" id="nodeName" placeholder="Contoh: Rumah Saya">
+    </div>
+    <div id="nodeFieldsHub" style="display:none;">
+      <label>Nama Hub *</label>
+      <input type="text" id="hubName" placeholder="Contoh: Hub Jl. Mawar">
+      <label>Base Station</label>
+      <select id="hubBase"><option value="">-- Tidak ada --</option></select>
+      <label>Jumlah Port (kosongkan jika tidak ada batas)</label>
+      <input type="number" id="hubPorts" min="1" placeholder="Contoh: 4, 8, 16 ...">
+    </div>
+    <div id="nodeFieldsCustomer" style="display:none;">
+      <label>Nama Pelanggan *</label>
+      <input type="text" id="custName" placeholder="Contoh: Pak Ahmad">
+      <label>Hub</label>
+      <select id="custHub"><option value="">-- Belum di-assign --</option></select>
+      <label>Nomor HP</label>
+      <input type="text" id="custPhone" placeholder="08xxxxxxxxx">
+      <label>Paket</label>
+      <select id="custPaket"><option value="">-- Pilih Paket --</option></select>
+      <label>Status</label>
+      <select id="custStatus">
+        <option value="aktif">Aktif</option>
+        <option value="tidak_aktif">Tidak Aktif</option>
+        <option value="calon">Calon</option>
+      </select>
+    </div>
+    <label>Catatan (opsional)</label>
+    <textarea id="nodeNotes" placeholder="Catatan tambahan..."></textarea>
+    <div class="modal-actions">
+      <button class="action-btn danger" id="nodeDeleteBtn" onclick="deleteFromNodeModal()" style="display:none;margin-right:auto;">Hapus</button>
+      <button class="action-btn secondary" onclick="closeNodeModal()">Batal</button>
+      <button class="action-btn primary" id="nodeSaveBtn" onclick="saveNode()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Measurement Edit Modal -->
+<div class="modal-overlay" id="measureModal">
+  <div class="modal">
+    <h3 style="color:var(--warn);">Edit Pengukuran</h3>
+    <label>Label (opsional)</label>
+    <input type="text" id="measureLabelInput" placeholder="Contoh: Jalur ke Pak Ahmad">
+    <label>Catatan (opsional)</label>
+    <textarea id="measureNotesInput" placeholder="Contoh: Lewat tiang listrik, perlu izin RT"></textarea>
+    <div class="coord-display" id="measureCoordDisplay"></div>
+    <div class="modal-actions">
+      <button class="action-btn danger" onclick="deleteFromMeasureModal()" style="margin-right:auto;">Hapus</button>
+      <button class="action-btn secondary" onclick="closeMeasureModal()">Batal</button>
+      <button class="action-btn primary" onclick="saveMeasureEdit()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- JS modules -->
+<!-- Core utilities and constants FIRST -->
+<script src="js/constants.js"></script>
+<script src="js/validation.js"></script>
+<script src="js/utils.js"></script>
+<!-- Then application modules -->
+<script src="js/app.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/map.js"></script>
+<script src="js/markers.js"></script>
+<script src="js/measure.js"></script>
+<script src="js/modal.js"></script>
+<script src="js/panel.js"></script>
+<script src="js/search.js"></script>
+<script src="js/init.js"></script>
+<div class="crosshair-overlay" id="crosshairOverlay"></div>
+<button class="crosshair-confirm-btn" id="crosshairConfirmBtn">Konfirmasi Lokasi</button>
+</body>
+</html>
