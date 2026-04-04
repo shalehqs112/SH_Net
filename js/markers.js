@@ -5,7 +5,7 @@ function getMarkerIcon(nodeOrType, extraClass, outlineClass) {
   // Accept either a node object or a type string
   let type = typeof nodeOrType === 'string' ? nodeOrType : (nodeOrType && nodeOrType.type ? nodeOrType.type : 'customer');
   if (type === 'base') return L.divIcon({ className: 'custom-marker' + cls, html: `<div class="marker-pin-base${outline}"></div>`, iconSize: [18, 18], iconAnchor: [9, 15] });
-  if (type === 'hub') return L.divIcon({ className: 'custom-marker' + cls, html: `<div class="marker-pin-hub${outline}"></div>`, iconSize: [16, 16], iconAnchor: [8, 15] });
+  if (type === 'hub') return L.divIcon({ className: 'custom-marker' + cls, html: `<div class="marker-pin-hub${outline}"></div>`, iconSize: [16, 16], iconAnchor: [8, 13] });
 
   // Customer: determine status class if node provided
   let statusClass = '';
@@ -15,7 +15,7 @@ function getMarkerIcon(nodeOrType, extraClass, outlineClass) {
     if (st === 'aktif' || st === 'tidak_aktif') statusClass = ' ' + st;
   }
 
-  return L.divIcon({ className: 'custom-marker' + cls, html: `<div class="marker-pin-customer${statusClass}${outline}"></div>`, iconSize: [14, 14], iconAnchor: [7, 15] });
+  return L.divIcon({ className: 'custom-marker' + cls, html: `<div class="marker-pin-customer${statusClass}${outline}"></div>`, iconSize: [14, 14], iconAnchor: [7, 15.6] });
 }
 
 // ===== ADD MARKER =====

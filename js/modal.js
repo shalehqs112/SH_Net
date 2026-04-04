@@ -113,7 +113,7 @@ function populateBaseSelect(selectedId) {
   const select = document.getElementById('hubBase');
   if (!select) return;
   const bases = getBases();
-  select.innerHTML = '<option value="">-- Tidak ada --</option>';
+  select.innerHTML = '<option value="">Tidak ada</option>';
   bases.forEach(b => {
     select.innerHTML += `<option value="${b.id}" ${b.id == selectedId ? 'selected' : ''}>${b.name}</option>`;
   });

@@ -173,7 +173,7 @@ function getMeasureTotalDist(m) {
 }
 
 function getMeasureLabelHtml(id, distText, labelText) {
-  const display = labelText ? `${labelText} · ${distText}` : `📏 ${distText}`;
+  const display = labelText ? `${labelText} · ${distText}` : `${distText}`;
   return `<span class="dist-text" onclick="event.stopPropagation(); editMeasurement(${id})" style="cursor:pointer;">${display}</span><button class="dist-delete" onclick="event.stopPropagation(); deleteMeasurement(${id})">×</button>`;
 }
 

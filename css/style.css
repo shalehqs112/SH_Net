@@ -219,11 +219,56 @@ body { font-family: var(--font-body); background: var(--bg-dark); color: var(--t
 .modal .coord-display { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); background: var(--bg-dark); padding: 6px 10px; border-radius: 6px; margin-bottom: 16px; }
 .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
 
-/* === Distance Labels === */
-.distance-label { background: transparent; border: none; padding: 0; white-space: nowrap; display: flex; align-items: center; gap: 4px; }
-.dist-text { font-family: var(--font-mono); font-size: 12px; font-weight: 800; color: #080808; text-shadow: 0 0 3px #fff, 0 0 6px #fff, 1px 1px 0 #fff, -1px -1px 0 #fff; pointer-events: none; cursor: pointer; }
-.dist-delete { width: 16px; height: 16px; border: none; border-radius: 50%; background: #ff002c; color: #ffffff; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; line-height: 1; opacity: 0.85; }
-.dist-delete:hover { opacity: 1; background: #cc0020; }
+/* === Distance Labels - MODERNIZED === */
+.distance-label { 
+  background: transparent; 
+  border: none; 
+  padding: 0; 
+  white-space: nowrap; 
+  display: flex; 
+  align-items: center; 
+  gap: 6px;
+}
+ 
+.dist-text { 
+  font-family: var(--font-mono); 
+  font-size: 13px; 
+  font-weight: 700; 
+  color: #ffffff; 
+  background: transparent; 
+  padding: 0; 
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; 
+  pointer-events: auto; 
+  cursor: pointer; 
+}
+
+.dist-text:hover { opacity: 0.9; }
+ 
+.dist-delete { 
+  width: 20px; 
+  height: 20px; 
+  border: none; 
+  border-radius: 50%; 
+  background: rgba(220, 38, 38, 0.9); 
+  color: #ffffff; 
+  font-size: 12px; 
+  font-weight: 600; 
+  cursor: pointer; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  flex-shrink: 0; 
+  line-height: 1; 
+  opacity: 0.9;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  transition: all 0.15s ease;
+}
+
+.dist-delete:hover { 
+  opacity: 1; 
+  background: rgba(185, 28, 28, 0.95);
+  transform: scale(1.05);
+}
 
 /* === Hub Highlight === */
 .hub-info-overlay { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); z-index: 998; background: rgba(10,14,23,0.92); backdrop-filter: blur(20px); border: 1px solid var(--hub-color); border-radius: 12px; padding: 12px 20px; display: none; align-items: center; gap: 16px; font-family: var(--font-mono); font-size: 12px; color: var(--text); box-shadow: 0 4px 20px rgba(168,85,247,0.2); max-width: calc(100vw - 32px); }
